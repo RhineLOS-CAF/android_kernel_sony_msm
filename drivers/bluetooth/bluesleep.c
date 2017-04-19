@@ -209,10 +209,10 @@ static void enable_wakeup_irq(int enable)
 	disabled = atomic_read(&bsi->wakeup_irq_disabled);
 
 	if (enable && disabled == 1) {
-		enable_irq_wake(bsi->host_wake_irq);
+		enable_irq(bsi->host_wake_irq);
 		atomic_dec(&bsi->wakeup_irq_disabled);
 	} else if (!enable && !disabled) {
-		disable_irq_wake(bsi->host_wake_irq);
+		disable_irq(bsi->host_wake_irq);
 		atomic_inc(&bsi->wakeup_irq_disabled);
 	}
 }
@@ -702,13 +702,14 @@ static int bluesleep_resume(struct platform_device *pdev)
 	if (test_bit(BT_SUSPEND, &flags)) {
 		if (debug_mask & DEBUG_SUSPEND)
 			pr_info("bluesleep resuming...\n");
+		clear_bit(BT_SUSPEND, &flags);
+
 		if (atomic_read(&open_count) == 1 &&
 			(gpio_get_value(bsi->host_wake) == bsi->irq_polarity)) {
 			if (debug_mask & DEBUG_SUSPEND)
 				pr_info("bluesleep resume from BT event...\n");
 			hsuart_power(HS_UART_ON);
 		}
-		clear_bit(BT_SUSPEND, &flags);
 	}
 	return 0;
 }
